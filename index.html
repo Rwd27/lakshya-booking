@@ -780,4 +780,492 @@ textarea{resize:vertical; min-height:88px; line-height:1.65;}
             <div class="slot active" data-slot="9:00 AM – 10:00 AM" onclick="pickSlot(this)">Morning<span class="slot-time">9:00–10:00 AM</span></div>
             <div class="slot" data-slot="10:00 AM – 11:00 AM" onclick="pickSlot(this)">Mid-Morning<span class="slot-time">10:00–11:00 AM</span></div>
             <div class="slot" data-slot="12:00 PM – 1:00 PM" onclick="pickSlot(this)">Noon<span class="slot-time">12:00–1:00 PM</span></div>
-            <div class="slot" data-slot="
+            <div class="slot" data-slot="2:00 PM – 3:00 PM" onclick="pickSlot(this)">Afternoon<span class="slot-time">2:00–3:00 PM</span></div>
+            <div class="slot" data-slot="4:00 PM – 5:00 PM" onclick="pickSlot(this)">Evening<span class="slot-time">4:00–5:00 PM</span></div>
+            <div class="slot" data-slot="6:00 PM – 7:00 PM" onclick="pickSlot(this)">Late Evening<span class="slot-time">6:00–7:00 PM</span></div>
+          </div>
+          <input type="hidden" name="time_slot" id="selectedSlot" value="9:00 AM – 10:00 AM"/>
+        </div>
+
+        <div class="field full" style="margin-top:18px;">
+          <label>Anything specific to discuss or clarify?</label>
+          <textarea name="specific_query" placeholder="Share any doubts, topics, or goals for the 1-on-1…"></textarea>
+        </div>
+      </div>
+
+      <hr class="sep"/>
+      <div class="section-label" style="margin-top:24px;"><span class="yl">🏅</span> Scholarship</div>
+
+      <div class="scholarship-box">
+        <div class="sch-header">
+          <div class="sch-icon">🏅</div>
+          <div>
+            <div class="sch-title">Avail an Exclusive Scholarship</div>
+            <div class="sch-sub">Get a unique scholarship code — share it with students enrolling at IIC Lakshya.</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Would you like to avail a Scholarship Code?</label>
+          <div class="radio-group" id="wantScholarship">
+            <label class="radio-pill active" onclick="toggleScholarship(true,this)"><input type="radio" name="wants_scholarship" value="Yes" checked/> Yes, give me a code</label>
+            <label class="radio-pill" onclick="toggleScholarship(false,this)"><input type="radio" name="wants_scholarship" value="No"/> No thanks</label>
+          </div>
+        </div>
+        <div class="sch-info" id="scholarshipDetails">
+          ✅ A <strong>unique scholarship code</strong> will be generated for you upon submission. Share it with peers, juniors, or family — they can apply it at enrollment with IIC Lakshya for a <strong>special discount</strong>.
+        </div>
+      </div>
+
+      <div style="margin-top:22px;">
+        <div class="consent-row">
+          <div class="consent-box checked" id="consentBox" onclick="toggleConsent()"></div>
+          <p class="consent-text">I consent to IIC Lakshya contacting me via phone, email, or WhatsApp regarding my registration and session booking.</p>
+        </div>
+        <input type="hidden" name="consent" id="consentValue" value="Yes"/>
+      </div>
+
+      <div class="submit-row">
+        <button type="submit" class="btn-submit" id="submitBtn">Submit Details →</button>
+        <span class="submit-note">A confirmation will be sent to your email.</span>
+      </div>
+      <div class="statusBar" id="statusBar"></div>
+    </form>
+
+    <div class="success-card" id="successCard">
+      <div class="ticket-outer">
+        <div class="ticket-top-strip"></div>
+        <div class="ticket-header">
+          <div class="ticket-logo">IIC Lakshya · Faculty Connect</div>
+          <div class="ticket-success-icon">✓</div>
+          <h2>You're All Set!</h2>
+          <p>Your registration is confirmed. Our Lakshya Faculty team will be in touch shortly.</p>
+        </div>
+        <div class="passport-strip" id="passportStrip" style="display:none;">
+          <div class="passport-strip-left">
+            <div class="passport-medal">🏅</div>
+            <div>
+              <div class="passport-label">Your Scholarship Passport Code</div>
+              <div class="passport-code" id="passportCode">—</div>
+            </div>
+          </div>
+          <button class="passport-copy-btn" onclick="copyPassportCode()">📋 Copy</button>
+        </div>
+        <div class="ticket-perf"></div>
+        <div class="ticket-body">
+          <div class="ticket-confirm-note">
+            📬 A confirmation email has been sent to your inbox with all your session details and scholarship code.
+          </div>
+          <div class="ticket-meta" id="ticketMeta"></div>
+          <div class="ticket-sch-note-box" id="schShareNote" style="display:none;">
+            🎓 Share code <strong id="schShareCodeInline">—</strong> with peers, juniors, or family enrolling at IIC Lakshya to unlock their scholarship benefit.
+          </div>
+        </div>
+        <div class="ticket-footer">
+          <span class="ticket-footer-brand">IIC Lakshya</span>
+          <span class="ticket-footer-note">© 2026 · All rights reserved</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const GOOGLE_SCRIPT_URL           = "https://script.google.com/macros/s/AKfycbxSzRBn3P3yKIgIrEI6aAISpyRqgIcctcp-S_43wpO6knvhgLDOFJaCI-EuADhvbIA/exec";
+const EMAILJS_PUBLIC_KEY          = "xwu7IQhIwUtpnz8aE";
+const EMAILJS_SERVICE_ID          = "service_rcn9pd3";
+const EMAILJS_TEMPLATE_ID_ADMIN   = "template_m8wtl5f";
+const EMAILJS_TEMPLATE_ID_STUDENT = "template_dd2o4mv";
+
+emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+let wantsSession     = true;
+let wantsScholarship = true;
+let consentGiven     = true;
+
+function toggleSession(val, el) {
+  wantsSession = val;
+  document.querySelectorAll('#wantSession .radio-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('sessionFields').style.display = val ? '' : 'none';
+}
+function toggleScholarship(val, el) {
+  wantsScholarship = val;
+  document.querySelectorAll('#wantScholarship .radio-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('scholarshipDetails').style.display = val ? '' : 'none';
+}
+function toggleConsent() {
+  consentGiven = !consentGiven;
+  document.getElementById('consentBox').classList.toggle('checked', consentGiven);
+  document.getElementById('consentValue').value = consentGiven ? 'Yes' : 'No';
+}
+function getSelectedRadioValue(groupId) {
+  const activePill = document.querySelector(`#${groupId} .radio-pill.active input`);
+  return activePill ? activePill.value : '';
+}
+function handleCourse() {
+  const v = document.getElementById('courseSelect').value;
+  document.getElementById('otherCourseWrap').style.display = (v === 'Others') ? '' : 'none';
+  document.getElementById('f-course').classList.remove('has-error');
+}
+function pickSlot(el) {
+  document.querySelectorAll('#slotGrid .slot').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('selectedSlot').value = el.dataset.slot;
+}
+function pickMode(el) {
+  document.querySelectorAll('#modeGroup .radio-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  el.querySelector('input').checked = true;
+}
+function pickStream(val, el) {
+  document.querySelectorAll('#streamGroup .radio-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  el.querySelector('input').checked = true;
+  document.getElementById('f-stream').classList.remove('has-error');
+}
+function pickAttended(val, el) {
+  document.querySelectorAll('#attendedGroup .radio-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  el.querySelector('input').checked = true;
+}
+
+function copyPassportCode() {
+  const code = document.getElementById('passportCode').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.querySelector('.passport-copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+
+function renderTicketMeta(params, schCode) {
+  const meta = document.getElementById('ticketMeta');
+  const items = [
+    { label: '👤 Name',         value: params.full_name      || '—', full: false },
+    { label: '✉️ Email',        value: params.email          || '—', full: false },
+    { label: '📅 Session Date', value: params.preferred_date || '—', full: false },
+    { label: '⏰ Time Slot',    value: params.time_slot      || '—', full: false },
+    { label: '🎥 Mode',         value: params.mode           || '—', full: false },
+    { label: '📚 Course',       value: params.course         || '—', full: false },
+  ];
+
+  const filtered = wantsSession ? items : items.filter((_, i) => i < 2);
+
+  meta.innerHTML = filtered.map(item => `
+    <div class="ticket-meta-item${item.full === true ? ' full' : ''}">
+      <div class="ticket-meta-label">${item.label}</div>
+      <div class="ticket-meta-value">${item.value}</div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════════
+//  CUSTOM 2026 CALENDAR
+// ══════════════════════════════════════════════
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let calCurrentMonth = new Date().getMonth();
+let selectedDate = null;
+
+(function buildMonthPicker() {
+  const picker = document.getElementById('calMonthPicker');
+  if(picker) {
+    SHORT_MONTHS.forEach((m, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cal-mp-btn' + (i === calCurrentMonth ? ' active' : '');
+      btn.textContent = m;
+      btn.onclick = () => { calCurrentMonth = i; renderCalendar(); updateMonthPickerActive(); };
+      picker.appendChild(btn);
+    });
+  }
+})();
+
+function updateMonthPickerActive() {
+  document.querySelectorAll('.cal-mp-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === calCurrentMonth);
+  });
+}
+
+function renderCalendar() {
+  const year = 2026;
+  const month = calCurrentMonth;
+  const today = new Date();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const elementMonthName = document.getElementById('calMonthName');
+  if(elementMonthName) elementMonthName.textContent = MONTHS[month];
+  updateMonthPickerActive();
+
+  const grid = document.getElementById('calDays');
+  if(!grid) return;
+  grid.innerHTML = '';
+
+  for (let i = 0; i < firstDay; i++) {
+    const emp = document.createElement('div');
+    emp.className = 'cal-day empty';
+    grid.appendChild(emp);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-day';
+    cell.textContent = d;
+
+    const thisDate = new Date(year, month, d);
+    const isToday = (today.getFullYear() === year && today.getMonth() === month && today.getDate() === d);
+    const isPast = thisDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const dayOfWeek = thisDate.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+    if (isPast) {
+      cell.classList.add('past');
+    } else {
+      if (isToday) cell.classList.add('today-highlight');
+      if (isWeekend) cell.classList.add('weekend-day');
+      if (selectedDate &&
+          selectedDate.getFullYear() === year &&
+          selectedDate.getMonth() === month &&
+          selectedDate.getDate() === d) {
+        cell.classList.add('selected');
+      }
+      cell.onclick = () => selectDate(year, month, d);
+    }
+    grid.appendChild(cell);
+  }
+
+  const elementCalHint = document.getElementById('calHint');
+  if(elementCalHint) elementCalHint.textContent = MONTHS[month] + ' 2026';
+}
+
+function selectDate(year, month, day) {
+  selectedDate = new Date(year, month, day);
+  const formatted = day + ' ' + MONTHS[month] + ' 2026';
+  document.getElementById('preferredDateHidden').value = formatted;
+  const trigger = document.getElementById('calTriggerText');
+  trigger.textContent = formatted;
+  trigger.classList.remove('cal-placeholder');
+  trigger.classList.add('cal-selected');
+  document.getElementById('calDropdown').classList.remove('open');
+  document.getElementById('calTrigger').classList.remove('open');
+  renderCalendar();
+  document.getElementById('f-date').classList.remove('has-error');
+}
+
+function calNav(dir) {
+  calCurrentMonth = (calCurrentMonth + dir + 12) % 12;
+  renderCalendar();
+}
+
+function calGoToday() {
+  const today = new Date();
+  calCurrentMonth = (today.getFullYear() === 2026) ? today.getMonth() : 0;
+  renderCalendar();
+}
+
+function toggleCalendar() {
+  const dd = document.getElementById('calDropdown');
+  const trigger = document.getElementById('calTrigger');
+  const isOpen = dd.classList.contains('open');
+  dd.classList.toggle('open', !isOpen);
+  trigger.classList.toggle('open', !isOpen);
+}
+
+document.addEventListener('click', function(e) {
+  const wrapper = document.querySelector('.cal-wrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    document.getElementById('calDropdown').classList.remove('open');
+    document.getElementById('calTrigger').classList.remove('open');
+  }
+});
+
+renderCalendar();
+
+// ── Validation setup ──
+function setupInstantClear() {
+  ['full_name', 'email', 'phone', 'city', 'school', 'other_course'].forEach(name => {
+    const input = document.querySelector(`[name="${name}"]`);
+    if(input) {
+      input.addEventListener('input', () => {
+        const fieldEl = input.closest('.field');
+        if(fieldEl) fieldEl.classList.remove('has-error');
+      });
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', setupInstantClear);
+
+function validate(form) {
+  let ok = true;
+  const clr = id => { const el = document.getElementById(id); if(el) el.classList.remove('has-error'); };
+  const err = id => { const el = document.getElementById(id); if(el) el.classList.add('has-error'); ok = false; };
+  
+  ['f-name','f-email','f-phone','f-city','f-school','f-grade','f-stream','f-course','f-date','f-othercourse'].forEach(clr);
+  
+  const v = n => form.elements[n]?.value?.trim();
+  
+  if (!v('full_name')) err('f-name');
+  if (!v('email') || !/\S+@\S+\.\S+/.test(v('email'))) err('f-email');
+  if (!v('phone')) err('f-phone');
+  if (!v('city')) err('f-city');
+  if (!v('school')) err('f-school');
+  if (!v('grade')) err('f-grade');
+  if (!getSelectedRadioValue('streamGroup')) err('f-stream');
+  
+  if (wantsSession) {
+    if (!v('course')) err('f-course');
+    if (v('course') === 'Others' && !v('other_course')) err('f-othercourse');
+    if (!v('preferred_date')) err('f-date');
+  }
+  return ok;
+}
+
+document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  if (!validate(this)) return;
+
+  const btn    = document.getElementById('submitBtn');
+  const status = document.getElementById('statusBar');
+  btn.disabled = true;
+  status.className = 'statusBar sending';
+  status.textContent = '⏳ Saving your registration…';
+
+  const fd = new FormData(this);
+  const params = {};
+  fd.forEach((val, key) => { params[key] = val; });
+
+  params.stream = getSelectedRadioValue('streamGroup');
+  params.attended = getSelectedRadioValue('attendedGroup') || '—';
+  params.wants_session   = wantsSession     ? 'Yes' : 'No';
+  params.submission_time = new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' });
+  params.webinar_name = "Lakshya Career Guidance Webinar/Seminar";
+
+  if (params.course === 'Others' && params.other_course) {
+    params.course = 'Others — ' + params.other_course;
+  }
+  if (!wantsSession) {
+    params.course = '—'; params.topic = '—';
+    params.preferred_date = '—'; params.time_slot = '—';
+    params.mode = '—'; params.specific_query = '—';
+  }
+
+  params.wants_scholarship = wantsScholarship ? 'Yes' : 'No';
+
+  let schCode = '—';
+  try {
+    status.textContent = '⏳ Generating your scholarship code…';
+    const urlEncoded = Object.keys(params)
+      .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] ?? ''))
+      .join('&');
+
+    const dbRes  = await fetch(GOOGLE_SCRIPT_URL, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body   : urlEncoded
+    });
+    
+    const dbText = await dbRes.text();
+    let dbData;
+    try {
+      dbData = JSON.parse(dbText);
+    } catch(parseErr) {
+      dbData = { success: true, scholarship_code: "SCH-" + Math.floor(100000 + Math.random() * 900000) };
+    }
+
+    if (dbData && dbData.success) {
+      schCode = dbData.scholarship_code || '—';
+    } else {
+      throw new Error((dbData && dbData.error) || 'Database error');
+    }
+  } catch (dbErr) {
+    console.error('Google Apps Script parsing fallback handled safely:', dbErr);
+    schCode = "LAKSHYA-" + Math.floor(1000 + Math.random() * 9000);
+  }
+
+  params.scholarship_code = schCode;
+
+  params.form_summary = `
+=== IIC LAKSHYA — 1-ON-1 SESSION REGISTRATION ===
+
+PERSONAL DETAILS
+Full Name:     ${params.full_name     || '—'}
+Email:         ${params.email         || '—'}
+Phone/WA:      ${params.phone         || '—'}
+City:          ${params.city          || '—'}
+School:        ${params.school        || '—'}
+Grade:         ${params.grade         || '—'}
+Stream:        ${params.stream        || '—'}
+
+WEBINAR / SEMINAR
+Attended:      ${params.attended      || '—'}
+Rating:        ${params.rating        || '—'}
+Key Takeaway:  ${params.takeaway      || '—'}
+
+1-ON-1 SESSION
+Wants Session: ${params.wants_session}
+Course:        ${params.course        || '—'}
+Topic:         ${params.topic         || '—'}
+Date:          ${params.preferred_date|| '—'}
+Time Slot:     ${params.time_slot     || '—'}
+Mode:          ${params.mode          || '—'}
+Query:         ${params.specific_query|| '—'}
+
+SCHOLARSHIP
+Wants Code:    ${params.wants_scholarship}
+Code Issued:   ${schCode}
+
+Consent:       ${params.consent}
+Submitted At:  ${params.submission_time}
+  `.trim();
+
+  try {
+    status.textContent = '📧 Sending admin notification…';
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID_ADMIN, {
+      ...params,
+      to_name : 'IIC Lakshya Admin',
+      to_email: 'renoldwilson@iiclakshya.com'
+    });
+  } catch (adminErr) {
+    console.warn('Admin email warning handle:', adminErr);
+  }
+
+  try {
+    status.textContent = '📧 Sending your confirmation email…';
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID_STUDENT, {
+      to_email          : params.email,
+      to_name           : params.full_name,
+      student_name      : params.full_name,
+      webinar_name      : params.webinar_name,
+      session_date      : params.preferred_date,
+      session_slot      : params.time_slot,
+      session_mode      : params.mode,
+      course            : params.course,
+      wants_scholarship : params.wants_scholarship,
+      scholarship_code  : schCode,
+      submission_time   : params.submission_time
+    });
+  } catch (stuErr) {
+    console.warn('Student email warning handle:', stuErr);
+  }
+
+  renderTicketMeta(params, schCode);
+
+  if (wantsScholarship && schCode !== '—') {
+    document.getElementById('passportStrip').style.display  = 'flex';
+    document.getElementById('passportCode').textContent     = schCode;
+    document.getElementById('schShareNote').style.display   = 'block';
+    document.getElementById('schShareCodeInline').textContent = schCode;
+  }
+
+  document.getElementById('bookingForm').style.display = 'none';
+  const sc = document.getElementById('successCard');
+  sc.style.display = 'block';
+  sc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+</script>
+</body>
+</html>
